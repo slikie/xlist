@@ -31,6 +31,14 @@ jobs:
           distribution: 'adopt'
           cache: gradle
 
+
+      # Setup the flutter environment.
+      - uses: subosito/flutter-action@v1
+
+
+    # Get flutter dependencies.
+      - run: flutter pub get  
+        
       - name: Write key
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         run: |
@@ -42,49 +50,11 @@ jobs:
             echo KEY_PASSWORD='${{ secrets.KEY_PASSWORD }}' >> local.properties
           fi
 
-      - name: Cache Gradle Dependencies
-        uses: actions/cache@v4.0.2
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-            !~/.gradle/caches/build-cache-*
-          key: gradle-deps-core-${{ hashFiles('**/build.gradle.kts', '**/build.gradle', '**/libs.versions.toml') }}
-          restore-keys: |
-            gradle-deps
-
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-
-      - name: Build release
-        id: buildRelease
-        run: |
-          ./gradlew :app:assembleRelease
-          echo "releaseName=$(ls app/build/outputs/apk/release/*.apk | awk -F '(/|\\.apk)' '{print $6}')" >> $GITHUB_OUTPUT
+      - run: make release-apk
 
       - name: Upload release
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.buildRelease.outputs.releaseName }}
-          path: "app/build/outputs/apk/release/*.apk"
-
-      - name: Upload mappings
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: mappings
-          path: "app/build/outputs/mapping/release"
-
-      - name: Build debug
-        id: buildDebug
-        run: |
-          ./gradlew :app:assembleDebug
-          echo "debugName=$(ls app/build/outputs/apk/debug/*.apk | awk -F '(/|\\.apk)' '{print $6}')" >> $GITHUB_OUTPUT
-
-      - name: Upload debug
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ steps.buildDebug.outputs.debugName }}
-          path: "app/build/outputs/apk/debug/*.apk"
+          path: "build/app/outputs/apk/release/*.apk"
