@@ -49,7 +49,7 @@ jobs:
             echo KEY_PASSWORD='${{ secrets.KEY_PASSWORD }}' >> local.properties
           fi
 
-      - run: make gen
+      - run: make build
 
       - run: make release-apk
 
