@@ -9,7 +9,6 @@ on:
       - '**.txt'
       - '.github/**'
       - '.idea/**'
-      - '!.github/workflows/**'
 
 jobs:
   build:
@@ -49,6 +48,8 @@ jobs:
             echo KEY_ALIAS='${{ secrets.KEY_ALIAS }}' >> local.properties
             echo KEY_PASSWORD='${{ secrets.KEY_PASSWORD }}' >> local.properties
           fi
+
+      - run: make gen
 
       - run: make release-apk
 
